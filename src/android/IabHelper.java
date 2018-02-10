@@ -278,17 +278,28 @@ public class IabHelper {
 
         Intent serviceIntent = new Intent("com.android.vending.billing.InAppBillingService.BIND");
         serviceIntent.setPackage("com.android.vending");
-        if (!mContext.getPackageManager().queryIntentServices(serviceIntent, 0).isEmpty()) {
-            // service available to handle that Intent
-            mContext.bindService(serviceIntent, mServiceConn, Context.BIND_AUTO_CREATE);
+        try {
+            if (!mContext.getPackageManager().queryIntentServices(serviceIntent, 0).isEmpty()) {
+                // service available to handle that Intent
+                mContext.bindService(serviceIntent, mServiceConn, Context.BIND_AUTO_CREATE);
+                return;
+            }
         }
-        else {
-            // no service available to handle that Intent
+        catch (NullPointerException e) {
+            // unexpected failure while accessing the service,
+            // report the error.
             if (listener != null) {
                 listener.onIabSetupFinished(
-                        new IabResult(BILLING_RESPONSE_RESULT_BILLING_UNAVAILABLE,
-                        "Billing service unavailable on device."));
+                        new IabResult(BILLING_RESPONSE_RESULT_ERROR,
+                        "Billing service failed to initialize."));
             }
+            return;
+        }
+        // no service available to handle that Intent
+        if (listener != null) {
+            listener.onIabSetupFinished(
+                    new IabResult(BILLING_RESPONSE_RESULT_BILLING_UNAVAILABLE,
+                    "Billing service unavailable on device."));
         }
     }
 
@@ -565,10 +576,14 @@ public class IabHelper {
             }
 
             if (querySkuDetails) {
-                r = querySkuDetails(ITEM_TYPE_INAPP, inv, moreItemSkus);
-                if (r != BILLING_RESPONSE_RESULT_OK) {
-                    throw new IabException(r, "Error refreshing inventory (querying prices of items).");
-                }
+				try {
+                    r = querySkuDetails(ITEM_TYPE_INAPP, inv, moreItemSkus);
+                    if (r != BILLING_RESPONSE_RESULT_OK) {
+                        throw new IabException(r, "Error refreshing inventory (querying prices of items).");
+                    }
+				} catch (NullPointerException e) {
+					throw new IabException(IABHELPER_UNKNOWN_ERROR, "NullPointerException while refreshing inventory.", e);
+				}
             }
 
             // if subscriptions are supported, then also query for subscriptions
@@ -578,11 +593,15 @@ public class IabHelper {
                     throw new IabException(r, "Error refreshing inventory (querying owned subscriptions).");
                 }
 
-                if (querySkuDetails) {
-                    r = querySkuDetails(ITEM_TYPE_SUBS, inv, moreItemSkus);
-                    if (r != BILLING_RESPONSE_RESULT_OK) {
-                        throw new IabException(r, "Error refreshing inventory (querying prices of subscriptions).");
-                    }
+                 if (querySkuDetails) {
+					try {
+                        r = querySkuDetails(ITEM_TYPE_SUBS, inv, moreItemSkus);
+                        if (r != BILLING_RESPONSE_RESULT_OK) {
+                            throw new IabException(r, "Error refreshing inventory (querying prices of subscriptions).");
+                        }
+					} catch (NullPointerException e) {
+						throw new IabException(IABHELPER_UNKNOWN_ERROR, "NullPointerException while refreshing inventory.", e);
+					}
                 }
             }
 
@@ -593,6 +612,9 @@ public class IabHelper {
         }
         catch (JSONException e) {
             throw new IabException(IABHELPER_BAD_RESPONSE, "Error parsing JSON response while refreshing inventory.", e);
+        }
+        catch (NullPointerException e) {
+            throw new IabException(IABHELPER_UNKNOWN_ERROR, "NullPointer while refreshing inventory.", e);
         }
     }
 
@@ -848,7 +870,7 @@ public class IabHelper {
     }
 
 
-    int queryPurchases(Inventory inv, String itemType) throws JSONException, RemoteException {
+    int queryPurchases(Inventory inv, String itemType) throws JSONException, RemoteException, NullPointerException {
         // Query purchases
         logDebug("Querying owned items, item type: " + itemType);
         logDebug("Package name: " + mContext.getPackageName());
