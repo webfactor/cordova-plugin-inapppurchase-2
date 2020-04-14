@@ -141,6 +141,16 @@ inAppPurchase.getReceipt = function () {
   });
 };
 
+inAppPurchase.getLocalReceipt = function () {
+  return nativeCall('getLocalReceipt').then(function (res) {
+    var receipt = '';
+    if (res && res.receipt) {
+      receipt = res.receipt;
+    }
+    return receipt;
+  });
+};
+
 inAppPurchase.restorePurchases = function () {
   return nativeCall('restorePurchases').then(function (res) {
     var arr = [];

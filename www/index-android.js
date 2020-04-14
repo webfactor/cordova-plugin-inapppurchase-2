@@ -109,7 +109,7 @@ var nativeCall = function nativeCall(name) {
   return new Promise(function (resolve, reject) {
     window.cordova.exec(function (res) {
       resolve(res);
-    }, createIapError(reject), 'InAppBillingV3', name, args);
+    }, createIapError(reject), 'InAppBillingV6', name, args);
   });
 };
 
@@ -150,12 +150,12 @@ inAppPurchase.getProducts = function (productIds) {
   });
 };
 
-var executePaymentOfType = function executePaymentOfType(type, productId) {
+var executePaymentOfType = function executePaymentOfType(type, productId, extraParams) {
   return new Promise(function (resolve, reject) {
     if (!inAppPurchase.utils.validString(productId)) {
       reject(new Error(inAppPurchase.utils.errors[102]));
     } else {
-      nativeCall(type, [productId]).then(function (res) {
+      nativeCall(type, [productId, extraParams]).then(function (res) {
         resolve({
           signature: res.signature,
           productId: res.productId,
@@ -169,12 +169,12 @@ var executePaymentOfType = function executePaymentOfType(type, productId) {
   });
 };
 
-inAppPurchase.buy = function (productId) {
-  return executePaymentOfType('buy', productId);
+inAppPurchase.buy = function (productId, extraParams) {
+  return executePaymentOfType('buy', productId, extraParams);
 };
 
-inAppPurchase.subscribe = function (productId) {
-  return executePaymentOfType('subscribe', productId);
+inAppPurchase.subscribe = function (productId, extraParams) {
+  return executePaymentOfType('subscribe', productId, extraParams);
 };
 
 inAppPurchase.consume = function (type, receipt, signature) {

@@ -31,9 +31,12 @@ import com.alexdisler.inapppurchases.IabHelper.OnConsumeFinishedListener;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.util.Log;
 
-public class InAppBillingV3 extends CordovaPlugin {
+public class InAppBillingV6 extends CordovaPlugin {
+
+  public static final int BILLING_API_VERSION = 6;
 
   protected static final String TAG = "google.payments";
 
@@ -208,6 +211,41 @@ public class InAppBillingV3 extends CordovaPlugin {
       callbackContext.error(makeError("Invalid SKU", INVALID_ARGUMENTS));
       return false;
     }
+
+    final Bundle extraParams;
+    try {
+      JSONObject arg1 = args.optJSONObject(1);
+      String accountId = arg1.optString("accountId");
+      Boolean replaceSkusProration = arg1.optBoolean("replaceSkusProration", true);
+      JSONArray skusToReplaceJson = arg1.optJSONArray("skusToReplace");
+
+      List<String> ownedSkus;
+      try {
+        Inventory inventory = iabHelper.queryInventory(true, convertJsonArrayToList(skusToReplaceJson));
+        ownedSkus = inventory.getAllOwnedSkus();
+      } catch (IabException iax) {
+        callbackContext.error(makeError("Unable to retrieve owned products", BAD_RESPONSE_FROM_SERVER));
+        return false;
+      }
+
+      // skusToReplace intent parameter required only passing a currently subscribed plan.
+      ArrayList<String> skusToReplace = new ArrayList<String>();
+      for (int i = 0; i < skusToReplaceJson.length(); i++) {
+        String skuToReplace = skusToReplaceJson.getString(i);
+        if (!sku.equals(skuToReplace) && ownedSkus.contains(skuToReplace)) {
+          skusToReplace.add(skuToReplace);
+        }
+      }
+      extraParams = new Bundle();
+      if (!accountId.isEmpty())
+        extraParams.putString("accountId", accountId);
+      extraParams.putBoolean("replaceSkusProration", replaceSkusProration);
+      extraParams.putStringArrayList("skusToReplace", skusToReplace);
+    } catch (JSONException e) {
+      callbackContext.error(makeError("Invalid extraParams", INVALID_ARGUMENTS));
+      return false;
+    }
+
     if (iabHelper == null || !billingInitialized) {
       callbackContext.error(makeError("Billing is not initialized", BILLING_NOT_INITIALIZED));
       return false;
@@ -250,9 +288,9 @@ public class InAppBillingV3 extends CordovaPlugin {
       }
     };
     if(subscribe){
-      iabHelper.launchSubscriptionPurchaseFlow(cordovaActivity, sku, newOrder, oipfl, developerPayload);
+      iabHelper.launchSubscriptionPurchaseFlow(cordovaActivity, sku, newOrder, oipfl, developerPayload, extraParams);
     } else {
-      iabHelper.launchPurchaseFlow(cordovaActivity, sku, newOrder, oipfl, developerPayload);
+      iabHelper.launchPurchaseFlow(cordovaActivity, sku, newOrder, oipfl, developerPayload, extraParams);
     }
     return true;
   }
@@ -408,5 +446,13 @@ public class InAppBillingV3 extends CordovaPlugin {
     if (iabHelper != null) iabHelper.dispose();
     iabHelper = null;
     billingInitialized = false;
+  }
+
+  private List<String> convertJsonArrayToList(JSONArray jsonArray) throws JSONException {
+    List<String> list = new ArrayList<String>();
+    for (int i=0; i<jsonArray.length(); i++) {
+      list.add( jsonArray.getString(i) );
+    }
+    return list;
   }
 }

@@ -20,7 +20,7 @@ const nativeCall = (name, args = []) => {
   return new Promise((resolve, reject) => {
     window.cordova.exec((res) => {
       resolve(res);
-    }, createIapError(reject), 'InAppBillingV3', name, args);
+    }, createIapError(reject), 'InAppBillingV6', name, args);
   });
 };
 

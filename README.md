@@ -87,9 +87,10 @@ inAppPurchase
 
 ### Buy
 
-#### inAppPurchase.buy(productId)
+#### inAppPurchase.buy(productId, extraParams)
 
 - ___productId___ - a string of the productId
+- ___extraParams___ - (Android) an associative array that affects the operation of getBuyIntentExtraParams()
 
 If successful, the promise resolves to an object with the following attributes that you will need for the receipt validation:
 
@@ -122,9 +123,10 @@ inAppPurchase
 
 ### Subscribe
 
-#### inAppPurchase.subscribe(productId)
+#### inAppPurchase.subscribe(productId, extraParams)
 
 - ___productId___ - a string of the productId
+- ___extraParams___ - (Android) an associative array that affects the operation of getBuyIntentExtraParams()
 
 This function behaves the same as [buy()](https://github.com/AlexDisler/cordova-plugin-inapppurchase#buy) but with subscriptions.
 
