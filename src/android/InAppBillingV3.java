@@ -201,7 +201,7 @@ public class InAppBillingV3 extends CordovaPlugin {
     String developerPayload = "";
     try {
       sku = args.getString(0);
-      if (args.length > 1) {
+      if (args.length() > 1) {
         developerPayload = args.getString(1);
       }
     } catch (JSONException e) {
