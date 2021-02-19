@@ -5,9 +5,16 @@
 
 A lightweight Cordova plugin for in app purchases on iOS/Android. See [demo app](https://github.com/AlexDisler/cordova-inapppurchases-app) and [blog post](https://alexdisler.com/2016/02/29/in-app-purchases-ionic-cordova/).
 
-## Looking for maintainers
+## Maintenance status
 
-If you would like to maintain this project, get in touch.
+This repository is just a cherry-picked collection of all publicly available forks. It is not actively maintained. Below is a list of forks on which this repo is directly or indirectly based:
+- [Chadori/cordova-plugin-inapppurchase](https://github.com/Chadori/cordova-plugin-inapppurchase)
+- [ghenry22/cordova-plugin-inapppurchase](https://github.com/ghenry22/cordova-plugin-inapppurchase)
+- [RainerAppel/cordova-plugin-inapppurchase](https://github.com/RainerAppel/cordova-plugin-inapppurchase)
+- [richmoh/cordova-plugin-inapppurchase](https://github.com/richmoh/cordova-plugin-inapppurchase)
+- [bayard-lacroix/cordova-plugin-inapppurchase](https://github.com/bayard-lacroix/cordova-plugin-inapppurchase)
+- [epetre/cordova-plugin-inapppurchase](https://github.com/epetre/cordova-plugin-inapppurchase)
+- [fidaktk/cordova-plugin-inapppurchase](https://github.com/fidaktk/cordova-plugin-inapppurchase)
 
 ## Features
 
