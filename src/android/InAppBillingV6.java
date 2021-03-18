@@ -66,22 +66,45 @@ public class InAppBillingV6 extends CordovaPlugin {
   private JSONObject getManifestContents() {
     if (manifestObject != null) return manifestObject;
 
-    Context context = this.cordova.getActivity();
     InputStream is;
     try {
-      is = context.getAssets().open("www/manifest.json");
-      Scanner s = new Scanner(is).useDelimiter("\\A");
-      String manifestString = s.hasNext() ? s.next() : "";
-      Log.d(TAG, "manifest:" + manifestString);
-      manifestObject = new JSONObject(manifestString);
-    } catch (IOException e) {
-      Log.d(TAG, "Unable to read manifest file:" + e.toString());
-      manifestObject = null;
+      is = getManifestFileInputStream("wwww");
+      if (is == null) {
+        is = getManifestFileInputStream("public");
+      }
+      if (is != null) {
+        Scanner s = new Scanner(is).useDelimiter("\\A");
+        String manifestString = s.hasNext() ? s.next() : "";
+        Log.d(TAG, "manifest:" + manifestString);
+        manifestObject = new JSONObject(manifestString);
+      } else {
+        manifestObject = null;
+      }
     } catch (JSONException e) {
       Log.d(TAG, "Unable to parse manifest file:" + e.toString());
       manifestObject = null;
     }
     return manifestObject;
+  }
+
+  /**
+   * Load manifest file from assets by given path.
+   *
+   * In Cordova manifest file should be placed on path 'www/manifest.json'.
+   * In Capacitor the path should be 'public/manifest.json'
+   *
+   * @param path should contain path of manifest.json file (without '/manifest.json').
+   * @return InputStream if manifest file is loaded, null otherwise.
+   */
+  private InputStream getManifestFileInputStream(String path) {
+    InputStream inputStream = null;
+    Context context = this.cordova.getActivity();
+    try {
+      inputStream = context.getAssets().open(path + "/manifest.json");
+    } catch (IOException e) {
+      Log.d(TAG, "Can not load manifest file on path: " + path + "/manifest.json");
+    }
+    return inputStream;
   }
 
   protected String getBase64EncodedPublicKey() {
