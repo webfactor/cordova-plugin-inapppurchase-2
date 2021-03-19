@@ -251,9 +251,9 @@ public class InAppBillingV6 extends CordovaPlugin {
       }
       List<String> ownedSkus;
       try {
-        com.alexdisler.inapppurchases.Inventory inventory = iabHelper.queryInventory(true, convertJsonArrayToList(skusToReplaceJson));
+        Inventory inventory = iabHelper.queryInventory(true, convertJsonArrayToList(skusToReplaceJson));
         ownedSkus = inventory.getAllOwnedSkus();
-      } catch (com.alexdisler.inapppurchases.IabException iax) {
+      } catch (IabException iax) {
         callbackContext.error(makeError("Unable to retrieve owned products", BAD_RESPONSE_FROM_SERVER));
         return false;
       }
@@ -283,17 +283,17 @@ public class InAppBillingV6 extends CordovaPlugin {
     final Activity cordovaActivity = this.cordova.getActivity();
     int newOrder = orderSerial.getAndIncrement();
     this.cordova.setActivityResultCallback(this);
-    com.alexdisler.inapppurchases.IabHelper.OnIabPurchaseFinishedListener oipfl = new com.alexdisler.inapppurchases.IabHelper.OnIabPurchaseFinishedListener() {
-      public void onIabPurchaseFinished(com.alexdisler.inapppurchases.IabResult result, com.alexdisler.inapppurchases.Purchase purchase) {
+    IabHelper.OnIabPurchaseFinishedListener oipfl = new IabHelper.OnIabPurchaseFinishedListener() {
+      public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
         if (result.isFailure()) {
           int response = result.getResponse();
-          if (response == com.alexdisler.inapppurchases.IabHelper.IABHELPER_BAD_RESPONSE || response == com.alexdisler.inapppurchases.IabHelper.IABHELPER_UNKNOWN_ERROR) {
+          if (response == IabHelper.IABHELPER_BAD_RESPONSE || response == IabHelper.IABHELPER_UNKNOWN_ERROR) {
             callbackContext.error(makeError("Could not complete purchase", BAD_RESPONSE_FROM_SERVER, result));
-          } else if (response == com.alexdisler.inapppurchases.IabHelper.IABHELPER_VERIFICATION_FAILED) {
+          } else if (response == IabHelper.IABHELPER_VERIFICATION_FAILED) {
             callbackContext.error(makeError("Could not complete purchase", BAD_RESPONSE_FROM_SERVER, result));
-          } else if (response == com.alexdisler.inapppurchases.IabHelper.IABHELPER_USER_CANCELLED) {
+          } else if (response == IabHelper.IABHELPER_USER_CANCELLED) {
             callbackContext.error(makeError("Purchase Cancelled", USER_CANCELLED, result));
-          } else if (response == com.alexdisler.inapppurchases.IabHelper.BILLING_RESPONSE_RESULT_ITEM_ALREADY_OWNED) {
+          } else if (response == IabHelper.BILLING_RESPONSE_RESULT_ITEM_ALREADY_OWNED) {
             callbackContext.error(makeError("Item already owned", ITEM_ALREADY_OWNED, result));
           } else {
             callbackContext.error(makeError("Error completing purchase: " + response, UNKNOWN_ERROR, result));
