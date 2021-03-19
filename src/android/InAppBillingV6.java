@@ -201,7 +201,7 @@ public class InAppBillingV6 extends CordovaPlugin {
   }
 
   protected boolean init(final JSONArray args, final CallbackContext callbackContext) {
-    if (billingInitialized == true) {
+    if (billingInitialized) {
       Log.d(TAG, "Billing already initialized");
       callbackContext.success();
     } else if (iabHelper == null) {
@@ -238,10 +238,17 @@ public class InAppBillingV6 extends CordovaPlugin {
     final Bundle extraParams;
     try {
       JSONObject arg1 = args.optJSONObject(1);
-      String accountId = arg1.optString("accountId");
-      Boolean replaceSkusProration = arg1.optBoolean("replaceSkusProration", true);
-      JSONArray skusToReplaceJson = arg1.optJSONArray("skusToReplace");
-
+      String accountId = "";
+      boolean replaceSkusProration = true;
+      JSONArray skusToReplaceJson = new JSONArray();
+      if (arg1 != null) {
+        accountId = arg1.optString("accountId");
+        replaceSkusProration = arg1.optBoolean("replaceSkusProration", true);
+        skusToReplaceJson = arg1.optJSONArray("skusToReplace");
+        if (skusToReplaceJson == null) {
+          skusToReplaceJson = new JSONArray();
+        }
+      }
       List<String> ownedSkus;
       try {
         Inventory inventory = iabHelper.queryInventory(true, convertJsonArrayToList(skusToReplaceJson));
@@ -252,7 +259,7 @@ public class InAppBillingV6 extends CordovaPlugin {
       }
 
       // skusToReplace intent parameter required only passing a currently subscribed plan.
-      ArrayList<String> skusToReplace = new ArrayList<String>();
+      ArrayList<String> skusToReplace = new ArrayList<>();
       for (int i = 0; i < skusToReplaceJson.length(); i++) {
         String skuToReplace = skusToReplaceJson.getString(i);
         if (!sku.equals(skuToReplace) && ownedSkus.contains(skuToReplace)) {
