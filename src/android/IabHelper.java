@@ -643,7 +643,7 @@ public class IabHelper implements PurchasesUpdatedListener {
                                             protected boolean itemsProcessed = false;
 
                                             public void onAllProcessed() {
-                                                Log.d(TAG, "oqapf onAllProcessed: " + subsProcessed + " " + itemsProcessed;
+                                                Log.d(TAG, "oqapf onAllProcessed: " + subsProcessed + " " + itemsProcessed);
                                                 if (subsProcessed && itemsProcessed) {
                                                     flagEndAsync();
 
