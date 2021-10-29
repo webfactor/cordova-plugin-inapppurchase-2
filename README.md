@@ -172,6 +172,42 @@ inAppPurchase
   });
 ```
 
+### Acknowledge
+
+#### inAppPurchase.acknowledge(productType, receipt, signature)
+
+- ___productType___ - string
+- ___receipt___ - string (containing a json)
+- ___signature___ - string
+
+All 3 parameters are returned by the [buy()](https://github.com/AlexDisler/cordova-plugin-inapppurchase#buy) or [restorePurchases()](https://github.com/AlexDisler/cordova-plugin-inapppurchase#inapppurchaserestorepurchases) functions.
+
+Similar to consume, call this function after purchasing a product or subscription to mark it as acknowledged.
+
+___NOTE: This function is only relevant to Android purchases and subscriptions.___
+
+On ***Android***, you must acknowledge products and subscriptions.  You must acknowledge or consume each purchase or Google will refund after 3 days, currently.
+
+On ***iOS*** there is no need to "acknowledge" a product. However, in order to make your code cross platform, it is recommended to call it for iOS purchases and subscriptions as well.
+
+___Example:___
+
+```js
+// first buy the product...
+inAppPurchase
+  .buy('com.yourapp.prod1')
+  .then(function (data) {
+    // ...then mark it as consumed:
+    return inAppPurchase.acknowledge(data.productType, data.receipt, data.signature);
+  })
+  .then(function () {
+    console.log('product was successfully acknowledged!');
+  })
+  .catch(function (err) {
+    console.log(err);
+  });
+```
+
 ### Restore Purchases
 
 #### inAppPurchase.restorePurchases()
