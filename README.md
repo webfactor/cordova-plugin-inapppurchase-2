@@ -5,9 +5,13 @@
 
 A lightweight Cordova plugin for in app purchases on iOS/Android. See [demo app](https://github.com/AlexDisler/cordova-inapppurchases-app) and [blog post](https://alexdisler.com/2016/02/29/in-app-purchases-ionic-cordova/).
 
-## Maintenance status
+## Origin
 
-This repository is just a cherry-picked collection of all publicly available forks. It is not actively maintained. Below is a list of forks on which this repo is directly or indirectly based:
+The Android portion of this library was rewritten to work with Google Play Billing Library Version 4.  This is because of the recent Google Store requirement that version 3 or above is implemented for IAP.  The goal was to make minimal changes to the existing code, and to match the new code to the same coding conventions.
+
+Old IAP code should work as-is with 1 caveat:  Google now requires that all purchases either be consumed or acknowledge, or they will be automatically refunded.  The existing consume functionality has been rewritten (but not tested yet!) and the acknowledge function has been added.
+
+The repository was cherry-picked collection of all publicly available forks. Below is a list of forks on which this repo is directly or indirectly based:
 - [Chadori/cordova-plugin-inapppurchase](https://github.com/Chadori/cordova-plugin-inapppurchase)
 - [ghenry22/cordova-plugin-inapppurchase](https://github.com/ghenry22/cordova-plugin-inapppurchase)
 - [RainerAppel/cordova-plugin-inapppurchase](https://github.com/RainerAppel/cordova-plugin-inapppurchase)
@@ -18,6 +22,7 @@ This repository is just a cherry-picked collection of all publicly available for
 
 ## Features
 
+- Updated for Google Play Billing Library Version 4.  Not all functionality has been tested, and unit tests have *not* been updated or tried.
 - Simple, promise-based API
 - Support for consumable/non-consumable products and paid/free subscriptions
 - Support for restoring purchases
@@ -25,7 +30,7 @@ This repository is just a cherry-picked collection of all publicly available for
 
 ## Install
 
-    $ cordova plugin add cordova-plugin-inapppurchase
+    $ cordova plugin add cordova-plugin-inapppurchase-2
 
 ## Configuration
 

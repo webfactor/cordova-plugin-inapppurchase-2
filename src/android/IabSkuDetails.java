@@ -15,16 +15,20 @@
 
 package com.alexdisler.inapppurchases;
 
+import android.util.Log;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
+import com.android.billingclient.api.SkuDetails;
+
 /**
  * Represents an in-app product's listing details.
  */
-public class SkuDetails {
+public class IabSkuDetails {
     String mItemType;
     String mSku;
     String mType;
@@ -34,26 +38,26 @@ public class SkuDetails {
     String mPriceRaw;
     String mTitle;
     String mDescription;
-    String mJson;
+    SkuDetails mSkuDetails;
 
-    public SkuDetails(String jsonSkuDetails) throws JSONException {
-        this(IabHelper.ITEM_TYPE_INAPP, jsonSkuDetails);
+    String TAG = "google.payments ISD";
+
+    public IabSkuDetails(SkuDetails skuDetails) {
+        this(IabHelper.ITEM_TYPE_INAPP, skuDetails);
     }
 
-    public SkuDetails(String itemType, String jsonSkuDetails) throws JSONException {
+    public IabSkuDetails(String itemType, SkuDetails skuDetails) {
+        mSkuDetails = skuDetails;
         mItemType = itemType;
-        mJson = jsonSkuDetails;
-        JSONObject o = new JSONObject(mJson);
-        mSku = o.optString("productId");
-        mType = o.optString("type");
-        mPrice = o.optString("price");
-        mPriceCurrency = o.optString("price_currency_code");
-        mPriceAsDecimal = Double.parseDouble(o.optString("price_amount_micros"))/Double.valueOf(1000000);
-        mTitle = o.optString("title");
-        mDescription = o.optString("description");
+        mSku = skuDetails.getSku();
+        mType = skuDetails.getType();
+        mPrice = skuDetails.getPrice();
+        mPriceCurrency = skuDetails.getPriceCurrencyCode();
+        mPriceAsDecimal = skuDetails.getPriceAmountMicros()/Double.valueOf(1000000);
+        mTitle = skuDetails.getTitle();
+        mDescription = skuDetails.getDescription();
 
-        String priceMicrosStr = o.optString("price_amount_micros");
-        long priceMicros = Long.parseLong(priceMicrosStr);
+        long priceMicros = skuDetails.getPriceAmountMicros();
         DecimalFormat formatter = new DecimalFormat("#.00####");
         formatter.setDecimalFormatSymbols(DecimalFormatSymbols.getInstance(Locale.ENGLISH));
         mPriceRaw = formatter.format(priceMicros / 1000000.0);
@@ -70,6 +74,6 @@ public class SkuDetails {
 
     @Override
     public String toString() {
-        return "SkuDetails:" + mJson;
+        return "IabSkuDetails:" + mSkuDetails;
     }
 }
