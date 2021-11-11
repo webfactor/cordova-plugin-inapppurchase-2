@@ -101,8 +101,8 @@ If successful, the promise resolves to an object with the following attributes t
 
 - ```transactionId``` - The transaction/order id
 - ```receipt``` - On ***iOS*** it will be the base64 string of the receipt, on ***Android*** it will be a string of a json with all the transaction details required for validation such as ```{"orderId":"...","packageName:"...","productId":"...","purchaseTime":"...", "purchaseState":"...","purchaseToken":"..."}```
-- ```signature``` - On Android it can be used to [consume](https://github.com/AlexDisler/cordova-plugin-inapppurchase#inapppurchaseconsumeproducttype-receipt-signature) a purchase. On iOS it will be an empty string.
-- ```productType``` - On Android it can be used to [consume](https://github.com/AlexDisler/cordova-plugin-inapppurchase#inapppurchaseconsumeproducttype-receipt-signature) a purchase. On iOS it will be an empty string.
+- ```signature``` - On Android it can be used to [consume](#inapppurchaseconsumeproducttype-receipt-signature) a purchase. On iOS it will be an empty string.
+- ```productType``` - On Android it can be used to [consume](#inapppurchaseconsumeproducttype-receipt-signature) a purchase. On iOS it will be an empty string.
 
 ***Receipt validation:*** - To [validate your receipt](https://alexdisler.com/2016/03/20/validating-cordova-in-app-purchases-on-ios-and-android-using-nodejs/), you will need the ```receipt``` and ```signature``` on Android and the ```receipt``` and ```transactionId``` on iOS.
 
@@ -133,7 +133,7 @@ inAppPurchase
 - ___productId___ - a string of the productId
 - ___extraParams___ - (Android) an associative array that affects the operation of getBuyIntentExtraParams()
 
-This function behaves the same as [buy()](https://github.com/AlexDisler/cordova-plugin-inapppurchase#buy) but with subscriptions.
+This function behaves the same as [buy()](#buy) but with subscriptions.
 
 ### Consume
 
@@ -143,7 +143,7 @@ This function behaves the same as [buy()](https://github.com/AlexDisler/cordova-
 - ___receipt___ - string (containing a json)
 - ___signature___ - string
 
-All 3 parameters are returned by the [buy()](https://github.com/AlexDisler/cordova-plugin-inapppurchase#buy) or [restorePurchases()](https://github.com/AlexDisler/cordova-plugin-inapppurchase#inapppurchaserestorepurchases) functions.
+All 3 parameters are returned by the [buy()](#buy) or [restorePurchases()](#inapppurchaserestorepurchases) functions.
 
 Call this function after purchasing a "consumable" product to mark it as consumed.
 
@@ -180,7 +180,7 @@ inAppPurchase
 - ___receipt___ - string (containing a json)
 - ___signature___ - string
 
-All 3 parameters are returned by the [buy()](https://github.com/AlexDisler/cordova-plugin-inapppurchase#buy) or [restorePurchases()](https://github.com/AlexDisler/cordova-plugin-inapppurchase#inapppurchaserestorepurchases) functions.
+All 3 parameters are returned by the [buy()](#buy) or [restorePurchases()](#inapppurchaserestorepurchases) functions.
 
 Similar to consume, call this function after purchasing a product or subscription to mark it as acknowledged.
 
@@ -218,9 +218,9 @@ If successful, the promise resolves to an array of objects with the following at
 - ```state``` - the state of the product. On ***Android*** the statuses are: ```0 - ACTIVE, 1 - CANCELLED,  2 - REFUNDED```
 - ```transactionId```
 - ```date``` - timestamp of the purchase
-- ```productType``` - On Android it can be used to [consume](https://github.com/AlexDisler/cordova-plugin-inapppurchase#inapppurchaseconsumeproducttype-receipt-signature) a purchase. On iOS it will be an empty string.
-- ```receipt``` - On Android it can be used to [consume](https://github.com/AlexDisler/cordova-plugin-inapppurchase#inapppurchaseconsumeproducttype-receipt-signature) a purchase. On iOS it will be an empty string.
-- ```signature``` - On Android it can be used to [consume](https://github.com/AlexDisler/cordova-plugin-inapppurchase#inapppurchaseconsumeproducttype-receipt-signature) a purchase. On iOS it will be an empty string.
+- ```productType``` - On Android it can be used to [consume](#inapppurchaseconsumeproducttype-receipt-signature) a purchase. On iOS it will be an empty string.
+- ```receipt``` - On Android it can be used to [consume](#inapppurchaseconsumeproducttype-receipt-signature) a purchase. On iOS it will be an empty string.
+- ```signature``` - On Android it can be used to [consume](#inapppurchaseconsumeproducttype-receipt-signature) a purchase. On iOS it will be an empty string.
 
 ___Example:___
 
