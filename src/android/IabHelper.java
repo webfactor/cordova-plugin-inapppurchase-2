@@ -1024,6 +1024,7 @@ public class IabHelper implements PurchasesUpdatedListener {
                             result = new IabResult(billingResult.getResponseCode(), "Error acknowledging purchase.");
                         }
 
+                        flagEndAsync();
                         singleListener.onAcknowledgeFinished(purchase, result);
                     }
                 };
@@ -1033,6 +1034,7 @@ public class IabHelper implements PurchasesUpdatedListener {
                 if (token == null || token.equals("")) {
                     logError("Can't consume " + sku + ". No token.");
                     IabResult result =  new IabResult(BILLING_RESPONSE_RESULT_ERROR, "PurchaseInfo is missing token for sku: " + sku);
+                    flagEndAsync();
                     singleListener.onAcknowledgeFinished(purchase, result);
                 } else {
                     Log.d(TAG, "Acknowledging sku: " + sku + ", token: " + token);
