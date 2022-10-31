@@ -253,9 +253,9 @@ public class InAppBillingV6 extends CordovaPlugin {
         if (result.isFailure()) {
           int response = result.getResponse();
           if (response == IabHelper.IABHELPER_BAD_RESPONSE || response == IabHelper.IABHELPER_UNKNOWN_ERROR) {
-            callbackContext.error(makeError("Could not complete purchase", BAD_RESPONSE_FROM_SERVER, result));
+            callbackContext.error(makeError("Could not complete purchase, unknown error", BAD_RESPONSE_FROM_SERVER, result));
           } else if (response == IabHelper.IABHELPER_VERIFICATION_FAILED) {
-            callbackContext.error(makeError("Could not complete purchase", BAD_RESPONSE_FROM_SERVER, result));
+            callbackContext.error(makeError("Could not complete purchase, verification failed", BAD_RESPONSE_FROM_SERVER, result));
           } else if (response == IabHelper.IABHELPER_USER_CANCELLED) {
             callbackContext.error(makeError("Purchase Cancelled", USER_CANCELLED, result));
           } else if (response == IabHelper.BILLING_RESPONSE_RESULT_ITEM_ALREADY_OWNED) {

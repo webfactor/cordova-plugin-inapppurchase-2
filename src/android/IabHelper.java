@@ -238,6 +238,7 @@ public class IabHelper implements PurchasesUpdatedListener {
             // Only allow purchase verification to be skipped if we are debuggable
             boolean skipPurchaseVerification = (this.mSkipPurchaseVerification  &&
                      ((mContext.getApplicationInfo().flags & ApplicationInfo.FLAG_DEBUGGABLE) != 0));
+            Log.d(TAG, "IabHelper skipPurchaseVerification " + skipPurchaseVerification);
 
             List<String> skus = purchase.getSkus();
             queryInventoryAsync(true, skus, new IabHelper.QueryInventoryFinishedListener() {
