@@ -38,7 +38,6 @@ import android.os.RemoteException;
 import android.text.TextUtils;
 import android.util.Log;
 
-// import com.android.vending.billing.IInAppBillingService;
 import com.android.billingclient.api.PurchasesResponseListener;
 import com.android.billingclient.api.PurchasesUpdatedListener;
 import com.android.billingclient.api.BillingResult;
@@ -46,16 +45,18 @@ import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.BillingClient.BillingResponseCode;
 import com.android.billingclient.api.BillingClientStateListener;
 import com.android.billingclient.api.Purchase;
-// import com.android.billingclient.api.Purchase.PurchasesResult;
 import com.android.billingclient.api.BillingClient.SkuType;
-import com.android.billingclient.api.SkuDetails;
-import com.android.billingclient.api.SkuDetailsParams;
-import com.android.billingclient.api.SkuDetailsResponseListener;
+import com.android.billingclient.api.ProductDetails;
+import com.android.billingclient.api.QueryProductDetailsParams;
+import com.android.billingclient.api.QueryPurchasesParams;
+import com.android.billingclient.api.ProductDetailsResponseListener;
+import com.android.billingclient.api.BillingClient;
 
 import com.android.billingclient.api.AcknowledgePurchaseParams;
 import com.android.billingclient.api.AcknowledgePurchaseResponseListener;
 import com.android.billingclient.api.BillingClient.FeatureType;
 import com.android.billingclient.api.BillingFlowParams;
+import com.android.billingclient.api.BillingFlowParams.ProductDetailsParams;
 import com.android.billingclient.api.ConsumeParams;
 import com.android.billingclient.api.ConsumeResponseListener;
 
@@ -469,35 +470,54 @@ public class IabHelper implements PurchasesUpdatedListener {
 
         mPurchaseListener = listener;
         mPurchasingItemType = itemType;
-        List<String> skuList = new ArrayList<> ();
-        skuList.add(sku);
-        SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
-        params.setSkusList(skuList).setType(itemType);
 
-        // Store the sku so we can match it when the data comes back.
-        billingClient.querySkuDetailsAsync(params.build(),
-          new SkuDetailsResponseListener() {
-            @Override
-            public void onSkuDetailsResponse(BillingResult billingResult,
-                                             List<SkuDetails> skuDetailsList) {
-              Log.d(TAG, "purch skus: " + skuDetailsList);
-              // Process the result.
-              for(SkuDetails skuDetails : skuDetailsList) {
-                Log.d(TAG, "sku deets: " + skuDetails);
-                Log.d(TAG, "sku id: " + skuDetails.getSku());
+        List<QueryProductDetailsParams.Product> productList = new ArrayList<QueryProductDetailsParams.Product>();
 
-                if(sku.equals(skuDetails.getSku())) {
-                  Log.d(TAG, "got sku: " + skuDetails);
-                  BillingFlowParams purchaseParams =
-                    BillingFlowParams.newBuilder()
-                      .setSkuDetails(skuDetails)
-                      .build();
+          productList.add(QueryProductDetailsParams.Product.newBuilder()
+            .setProductId(sku)
+            .setProductType(itemType == ITEM_TYPE_SUBS ? BillingClient.ProductType.SUBS : BillingClient.ProductType.INAPP)
+            .build());
 
-                  billingClient.launchBillingFlow(act, purchaseParams);
+        QueryProductDetailsParams productDetailsParams = QueryProductDetailsParams.newBuilder()
+            .setProductList(productList)
+            .build();
+
+        ProductDetailsResponseListener productDetailsListener = new ProductDetailsResponseListener() {
+            public void onProductDetailsResponse(BillingResult billingResult, List<ProductDetails> productDetailsList) {
+                Log.d(TAG, "onPDR: " + billingResult + " " + productDetailsList);
+
+                ArrayList<IabSkuDetails> iabSkuDetailsList = new ArrayList<IabSkuDetails>();
+
+                for(ProductDetails productDetails: productDetailsList) {
+                    if(sku.equals(productDetails.getProductId())) {
+                        int selectedOfferIndex = 0; // Always the first one for us
+                        String offerToken = productDetails
+                           .getSubscriptionOfferDetails()
+                           .get(selectedOfferIndex)
+                           .getOfferToken();
+
+                        List<ProductDetailsParams> productDetailsParamsList =
+                            List.of(
+                                ProductDetailsParams.newBuilder()
+                                    .setProductDetails(productDetails)
+                                    .setOfferToken(offerToken)
+                                    .build()
+                            );
+
+                        BillingFlowParams billingFlowParams = BillingFlowParams.newBuilder()
+                            .setProductDetailsParamsList(productDetailsParamsList)
+                            .build();
+
+                        // Launch the billing flow
+                        billingClient.launchBillingFlow(act, billingFlowParams);
+                    }
                 }
-              }
             }
-          });
+        };
+
+        billingClient.queryProductDetailsAsync(
+          productDetailsParams,
+          productDetailsListener);
     }
 
     /**
@@ -873,27 +893,29 @@ public class IabHelper implements PurchasesUpdatedListener {
     int queryPurchasesAsync(String itemType, Inventory inv, List<String> moreSkus, OnQueryPurchasesFinishedListener listener) throws RemoteException {
         Log.d(TAG, "queryPurchasesAsync() Querying SKU details.");
 
-        billingClient.queryPurchasesAsync(itemType, new PurchasesResponseListener() {
-            @Override
-            public void onQueryPurchasesResponse(BillingResult billingResult, List<Purchase> purchases) {
-                ArrayList<IabPurchase> iabPurchasesList = new ArrayList<IabPurchase>();
+        billingClient.queryPurchasesAsync(
+            QueryPurchasesParams.newBuilder().setProductType(itemType == ITEM_TYPE_SUBS ? BillingClient.ProductType.SUBS : BillingClient.ProductType.INAPP).build(),
+                new PurchasesResponseListener() {
+                @Override
+                public void onQueryPurchasesResponse(BillingResult billingResult, List<Purchase> purchases) {
+                    ArrayList<IabPurchase> iabPurchasesList = new ArrayList<IabPurchase>();
 
-                Log.d(TAG, "onQueryPurchasesResponse: " + itemType + " " + purchases);
-                for(Purchase purchase: purchases) {
-                    try {
-                        IabPurchase iabPurchase = new IabPurchase(itemType, purchase.getOriginalJson(), purchase.getSignature());
-                        Log.d(TAG, "isd origin: " + iabPurchase);
-                        inv.addPurchase(iabPurchase);
-                        iabPurchasesList.add(iabPurchase);
-                    } catch (JSONException e) {
-                        Log.e(TAG, "onQueryPurchasesResponse: JSON exception");
+                    Log.d(TAG, "onQueryPurchasesResponse: " + itemType + " " + purchases);
+                    for(Purchase purchase: purchases) {
+                        try {
+                            IabPurchase iabPurchase = new IabPurchase(itemType, purchase.getOriginalJson(), purchase.getSignature());
+                            Log.d(TAG, "isd origin: " + iabPurchase);
+                            inv.addPurchase(iabPurchase);
+                            iabPurchasesList.add(iabPurchase);
+                        } catch (JSONException e) {
+                            Log.e(TAG, "onQueryPurchasesResponse: JSON exception");
+                        }
                     }
-                }
-                Log.d(TAG, "onPurchasesResponse: " + iabPurchasesList);
+                    Log.d(TAG, "onPurchasesResponse: " + iabPurchasesList);
 
-                listener.onQueryPurchasesFinished(iabPurchasesList, itemType);
-            }
-        });
+                    listener.onQueryPurchasesFinished(iabPurchasesList, itemType);
+                }
+            });
 
         return BILLING_RESPONSE_RESULT_OK;
     }
@@ -904,94 +926,51 @@ public class IabHelper implements PurchasesUpdatedListener {
 
     int queryIabSkuDetailsAsync(String itemType, Inventory inv, List<String> moreSkus, OnQueryIabSkuDetailsFinishedListener listener) throws RemoteException {
         Log.d(TAG, "queryIabSkuDetailsAsync() Querying SKU details.");
-        SkuDetailsParams.Builder sdpBuilder = SkuDetailsParams.newBuilder();
 
-        if(itemType != null && !itemType.equals("")) {
-            sdpBuilder.setType(itemType);
-        }
+        List<QueryProductDetailsParams.Product> productList = new ArrayList<QueryProductDetailsParams.Product>();
 
         if(moreSkus != null) {
-            sdpBuilder.setSkusList(moreSkus);
+          for(String sku : moreSkus) {
+              productList.add(QueryProductDetailsParams.Product.newBuilder()
+                .setProductId(sku)
+                .setProductType(itemType == ITEM_TYPE_SUBS ? BillingClient.ProductType.SUBS : BillingClient.ProductType.INAPP)
+                .build());
+          }
         } else {
-            sdpBuilder.setSkusList(inv.getAllOwnedSkus());
+            for(String sku : inv.getAllOwnedSkus()) {
+                productList.add(QueryProductDetailsParams.Product.newBuilder()
+                  .setProductId(sku)
+                  .setProductType(itemType == ITEM_TYPE_SUBS ? BillingClient.ProductType.SUBS : BillingClient.ProductType.INAPP)
+                  .build());
+            }
         }
 
-        SkuDetailsParams skuDetailsParams = sdpBuilder
-                .build();
+        QueryProductDetailsParams productDetailsParams = QueryProductDetailsParams.newBuilder()
+            .setProductList(productList)
+            .build();
 
-        billingClient.querySkuDetailsAsync(skuDetailsParams, new SkuDetailsResponseListener() {
-            @Override
-            public void onSkuDetailsResponse(BillingResult billingResult, List<SkuDetails> list) {
+        ProductDetailsResponseListener productDetailsListener = new ProductDetailsResponseListener() {
+            public void onProductDetailsResponse(BillingResult billingResult, List<ProductDetails> productDetailsList) {
+                Log.d(TAG, "onPDR: " + billingResult + " " + productDetailsList);
+
                 ArrayList<IabSkuDetails> iabSkuDetailsList = new ArrayList<IabSkuDetails>();
 
-                for(SkuDetails skuDetails: list) {
-                  Log.d(TAG, "onSkuDetailsResponse: " + list);
-                  IabSkuDetails iabSkuDetails = new IabSkuDetails(itemType, skuDetails);
-                  Log.d(TAG, "isd origin: " + iabSkuDetails);
+                for(ProductDetails productDetails: productDetailsList) {
+                  Log.d(TAG, "onPDR item: " + productDetails);
+                  IabSkuDetails iabSkuDetails = new IabSkuDetails(itemType, productDetails);
+                  Log.d(TAG, "onPDR isd origin: " + iabSkuDetails);
                   inv.addIabSkuDetails(iabSkuDetails);
                   iabSkuDetailsList.add(iabSkuDetails);
                 }
-              Log.d(TAG, "onSkuDetailsResponse: " + iabSkuDetailsList);
+                Log.d(TAG, "onPDR: " + iabSkuDetailsList);
 
-              listener.onQueryIabSkuDetailsFinished(iabSkuDetailsList, itemType);
+                listener.onQueryIabSkuDetailsFinished(iabSkuDetailsList, itemType);
             }
-        });
+        };
 
-        return BILLING_RESPONSE_RESULT_OK;
-    }
-
-    int queryIabSkuDetails(String itemType, Inventory inv, List<String> moreSkus) throws RemoteException, JSONException {
-        Log.d(TAG, "queryIabSkuDetails() Querying SKU details.");
-        Set<String> storeSkus = new TreeSet<String>();
-        final List<String> allOwnedSkus = inv.getAllOwnedSkus(itemType);
-        storeSkus.addAll(inv.getAllOwnedSkus(itemType));
-        if (moreSkus != null) {
-            for (String sku : moreSkus) {
-                if (!storeSkus.contains(sku)) {
-                        storeSkus.add(sku);
-                }
-            }
-        }
-        if (storeSkus.size() == 0) {
-            Log.d(TAG, "queryIabSkuDetails(): nothing to do because there are no SKUs.");
-            return BILLING_RESPONSE_RESULT_OK;
-        }
-
-        // Split the sku list in blocks of no more than QUERY_SKU_DETAILS_BATCH_SIZE elements.
-        ArrayList<ArrayList<String>> batches = new ArrayList<ArrayList<String>>();
-        ArrayList<String> tmpBatch = new ArrayList<String>(QUERY_SKU_DETAILS_BATCH_SIZE);
-        int iSku = 0;
-        for (String sku : storeSkus) {
-            tmpBatch.add(sku);
-            iSku++;
-            if (tmpBatch.size() == QUERY_SKU_DETAILS_BATCH_SIZE || iSku == storeSkus.size()) {
-                batches.add(tmpBatch);
-                tmpBatch = new ArrayList<String>(QUERY_SKU_DETAILS_BATCH_SIZE);
-            }
-        }
-
-        Log.d(TAG, "queryIabSkuDetails() batches: " + batches.size() + ", " + batches);
-
-        for (ArrayList<String> batch : batches) {
-        SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
-        String skuType = itemType == ITEM_TYPE_INAPP ? SkuType.INAPP : SkuType.SUBS;
-        params.setSkusList(batch).setType(skuType);
-        billingClient.querySkuDetailsAsync(params.build(),
-            new SkuDetailsResponseListener() {
-                @Override
-                public void onSkuDetailsResponse(BillingResult billingResult,
-                                                 List<SkuDetails> skuDetailsList) {
-                    // Process result
-                    Log.d(TAG, "onIabSkuDetailsResponse");
-                    for(SkuDetails skuDetails : skuDetailsList) {
-                         Log.d(TAG, "Got sku details: " + skuDetails);
-//                        Log.d(TAG, "Got sku details: " + skuDetails);
-                        IabSkuDetails iabSkuDetails = new IabSkuDetails(itemType, skuDetails);
-                        inv.addIabSkuDetails(iabSkuDetails);
-                    }
-                }
-            });
-        }
+        billingClient.queryProductDetailsAsync(
+          productDetailsParams,
+          productDetailsListener);
 
         return BILLING_RESPONSE_RESULT_OK;
     }

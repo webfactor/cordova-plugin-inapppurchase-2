@@ -23,7 +23,7 @@ import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.Locale;
 
-import com.android.billingclient.api.SkuDetails;
+import com.android.billingclient.api.ProductDetails;
 
 /**
  * Represents an in-app product's listing details.
@@ -38,29 +38,48 @@ public class IabSkuDetails {
     String mPriceRaw;
     String mTitle;
     String mDescription;
-    SkuDetails mSkuDetails;
+    ProductDetails mProductDetails;
 
     String TAG = "google.payments ISD";
 
-    public IabSkuDetails(SkuDetails skuDetails) {
-        this(IabHelper.ITEM_TYPE_INAPP, skuDetails);
+    // Item types
+    public static final String ITEM_TYPE_INAPP = "inapp";
+    public static final String ITEM_TYPE_SUBS = "subs";
+
+    public IabSkuDetails(ProductDetails productDetails) {
+        this(IabHelper.ITEM_TYPE_INAPP, productDetails);
     }
 
-    public IabSkuDetails(String itemType, SkuDetails skuDetails) {
-        mSkuDetails = skuDetails;
+    public IabSkuDetails(String itemType, ProductDetails productDetails) {
+        mProductDetails = productDetails;
         mItemType = itemType;
-        mSku = skuDetails.getSku();
-        mType = skuDetails.getType();
-        mPrice = skuDetails.getPrice();
-        mPriceCurrency = skuDetails.getPriceCurrencyCode();
-        mPriceAsDecimal = skuDetails.getPriceAmountMicros()/Double.valueOf(1000000);
-        mTitle = skuDetails.getTitle();
-        mDescription = skuDetails.getDescription();
 
-        long priceMicros = skuDetails.getPriceAmountMicros();
+        mSku = productDetails.getProductId();
+        mType = productDetails.getProductType();
+        mTitle = productDetails.getTitle();
+
+        mDescription = productDetails.getDescription();
+//         mPriceAsDecimal = Double.valueOf(1000);
+        if(ITEM_TYPE_INAPP.equals(itemType)) {
+            ProductDetails.OneTimePurchaseOfferDetails otp = productDetails.getOneTimePurchaseOfferDetails();
+
+            mPrice = otp.getFormattedPrice();
+            mPriceCurrency = otp.getPriceCurrencyCode();
+            mPriceAsDecimal = otp.getPriceAmountMicros()/Double.valueOf(1000000);
+        } else {
+            ProductDetails.SubscriptionOfferDetails so = productDetails.getSubscriptionOfferDetails().get(0);
+
+            ProductDetails.PricingPhase pp = so.getPricingPhases().getPricingPhaseList().get(0);
+
+            mPrice = pp.getFormattedPrice();
+            mPriceCurrency = pp.getPriceCurrencyCode();
+            mPriceAsDecimal = pp.getPriceAmountMicros()/Double.valueOf(1000000);
+        }
+
+//         long priceMicros = productDetails.getPriceAmountMicros();
         DecimalFormat formatter = new DecimalFormat("#.00####");
         formatter.setDecimalFormatSymbols(DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-        mPriceRaw = formatter.format(priceMicros / 1000000.0);
+        mPriceRaw = formatter.format(mPriceAsDecimal);
     }
 
     public String getSku() { return mSku; }
@@ -74,6 +93,18 @@ public class IabSkuDetails {
 
     @Override
     public String toString() {
-        return "IabSkuDetails:" + mSkuDetails;
+        return "IabSkuDetails mSku: " + mSku
+          + " mType: " + mType
+          + " mPrice: " + mPrice
+          + " mPriceCurrency: " + mPriceCurrency
+          + " mPriceAsDecimal: " + mPriceAsDecimal
+          + " mPriceRaw: " + mPriceRaw
+          + " mTitle: " + mTitle
+          + " mDescription: " + mDescription + "\n";
+//         if(mSkuDetails != null) {
+//             return "IabSkuDetails:" + mSkuDetails;
+//         } else {
+//             return "IabSkuDetails Product:" + mProductDetails;
+//         }
     }
 }
