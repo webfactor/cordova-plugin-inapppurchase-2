@@ -491,10 +491,14 @@ public class IabHelper implements PurchasesUpdatedListener {
                 for(ProductDetails productDetails: productDetailsList) {
                     if(sku.equals(productDetails.getProductId())) {
                         int selectedOfferIndex = 0; // Always the first one for us
-                        String offerToken = productDetails
-                           .getSubscriptionOfferDetails()
-                           .get(selectedOfferIndex)
-                           .getOfferToken();
+                        String offerToken="";
+                        List<ProductDetails.SubscriptionOfferDetails> subscriptionDetails = productDetails
+                            .getSubscriptionOfferDetails();
+                        if (subscriptionDetails!=null){
+                            offerToken = subscriptionDetails
+                              .get(selectedOfferIndex)
+                              .getOfferToken();
+                         }
 
                         List<ProductDetailsParams> productDetailsParamsList =
                             List.of(
