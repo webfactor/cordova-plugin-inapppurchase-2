@@ -499,15 +499,18 @@ public class IabHelper implements PurchasesUpdatedListener {
                               .get(selectedOfferIndex)
                               .getOfferToken();
                          }
+                        ProductDetailsParams.Builder builder = ProductDetailsParams.newBuilder();
+                        builder.setProductDetails(productDetails);
+                        if (offerToken != "") {
+                           builder.setOfferToken(offerToken);
+                        }
+
 
                         List<ProductDetailsParams> productDetailsParamsList =
-                            List.of(
-                                ProductDetailsParams.newBuilder()
-                                    .setProductDetails(productDetails)
-                                    .setOfferToken(offerToken)
-                                    .build()
-                            );
-
+                        List.of(
+                          builder
+                          .build()
+                        );
                         BillingFlowParams billingFlowParams = BillingFlowParams.newBuilder()
                             .setProductDetailsParamsList(productDetailsParamsList)
                             .build();
