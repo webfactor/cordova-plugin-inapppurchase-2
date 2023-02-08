@@ -503,4 +503,10 @@ public class InAppBillingV6 extends CordovaPlugin {
     }
     return list;
   }
+
+  void flagEndAsync() {
+    Log.d(TAG, "Ending async operation: " + mAsyncOperation);
+    mAsyncOperation = "";
+    mAsyncInProgress = false;
+}
 }
