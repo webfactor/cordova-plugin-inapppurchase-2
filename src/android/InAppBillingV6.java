@@ -227,6 +227,7 @@ public class InAppBillingV6 extends CordovaPlugin {
   }
 
   protected boolean runPayment(final JSONArray args, final CallbackContext callbackContext, boolean subscribe) {
+    flagEndAsync();
     Log.d(TAG, "runPayment");
     final String sku;
     String developerPayload = "";
@@ -442,6 +443,7 @@ public class InAppBillingV6 extends CordovaPlugin {
   }
 
   protected boolean restorePurchases(final JSONArray args, final CallbackContext callbackContext) {
+      Log.e(TAG, "inPlugin");
       Log.d(TAG, "restorePurchases: " + args);
       if (iabHelper == null || !billingInitialized) {
       callbackContext.error(makeError("Billing is not initialized", BILLING_NOT_INITIALIZED));
