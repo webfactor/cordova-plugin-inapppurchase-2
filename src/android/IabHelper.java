@@ -578,8 +578,11 @@ public class IabHelper implements PurchasesUpdatedListener {
         checkNotDisposed();
         checkSetupDone("queryInventory");
         flagStartAsync("refresh inventory");
-        (new Thread(new Runnable() {
+       Thread tread = (new Thread(new Runnable() {
             public void run() {
+
+
+
                 IabResult result = new IabResult(BILLING_RESPONSE_RESULT_OK, "Inventory refresh successful.");
                 Inventory inv = new Inventory();
                 try {
@@ -691,6 +694,15 @@ public class IabHelper implements PurchasesUpdatedListener {
 
             }
         })).start();
+
+
+        Timer timer = new Timer();
+TimeOutTask timeOutTask = new TimeOutTask(thread, timer);
+timer.schedule(timeOutTask, 10000);
+
+
+
+
     }
 
     public void queryInventoryAsync(QueryInventoryFinishedListener listener) {
