@@ -571,6 +571,8 @@ public class IabHelper implements PurchasesUpdatedListener {
     public void queryInventoryAsync(final boolean queryIabSkuDetails,
                                final List<String> moreSkus,
                                final QueryInventoryFinishedListener listener) {
+
+        flagEndAsync();
         Log.d(TAG, "IabHelper queryInventoryAsync" + queryIabSkuDetails + " " + moreSkus);
         final Handler handler = new Handler();
         checkNotDisposed();

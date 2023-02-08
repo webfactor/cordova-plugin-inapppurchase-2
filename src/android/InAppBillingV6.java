@@ -227,7 +227,7 @@ public class InAppBillingV6 extends CordovaPlugin {
   }
 
   protected boolean runPayment(final JSONArray args, final CallbackContext callbackContext, boolean subscribe) {
-    flagEndAsync();
+
     Log.d(TAG, "runPayment");
     final String sku;
     String developerPayload = "";
@@ -504,9 +504,4 @@ public class InAppBillingV6 extends CordovaPlugin {
     return list;
   }
 
-  void flagEndAsync() {
-    Log.d(TAG, "Ending async operation: " + mAsyncOperation);
-    mAsyncOperation = "";
-    mAsyncInProgress = false;
-}
 }
